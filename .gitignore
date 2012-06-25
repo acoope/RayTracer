@@ -1,5 +1,6 @@
 *.class
 nbproject/*
+.DS_STORE
 
 # Package Files #
 *.jar
