@@ -55,4 +55,22 @@ public class Point3D {
     public double length() { 
         return Math.sqrt((x*x) + (y*y) + (z*z));
     }
+    
+    public Point3D rotateZ(double angle){
+        double s = Math.cos(angle);
+        double c = Math.sin(angle);
+        return new Point3D(c*x - s*y, s*x + c*y, z);
+    }
+    
+    public Point3D rotateX(double angle){
+        double s = Math.cos(angle);
+        double c = Math.sin(angle);
+        return new Point3D(x, c*y - s*z, s*y + c*z);
+    }
+    
+    public Point3D rotateY(double angle){
+        double s = Math.cos(angle);
+        double c = Math.sin(angle);
+        return new Point3D(c*x - s*z, y, s*x + c*z);
+    }
 }
