@@ -7,6 +7,10 @@ import utils.*;
 
 public class RayTracer extends JComponent {
 
+    public Point3D eye;
+    public ArrayList<Light> lights;
+    public ArrayList<Object3D> objects;
+    
     /**
      * @param args the command line arguments
      */
@@ -23,14 +27,14 @@ public class RayTracer extends JComponent {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        ArrayList<Light> lights = new ArrayList<Light>();
-        ArrayList<Object3D> objects = new ArrayList<Object3D>();
+        lights = new ArrayList<Light>();
+        objects = new ArrayList<Object3D>();
 
         //Create Canvas
         Canvas canvas = new Canvas();
 
         //Set where eye is
-        Point3D eye = new Point3D(0d, 0d, 0d);
+        eye = new Point3D(0d, 0d, 0d);
 
         //Add light(s)
         lights.add(new Light(new Point3D(0, 20, 80)));
@@ -49,61 +53,25 @@ public class RayTracer extends JComponent {
         //create a ray from eye to every point going through screen
         for (int i = 0; i < screenHeight; i++) {
             for (int j = 0; j < screenWidth; j++) {
-                
-                double x = (j-screenWidth/2)*screen/screenWidth;
-                double y = (i-screenHeight/2)*screen/screenHeight;
-                        
+              
+                double x = (j - screenWidth / 2) * screen / screenWidth;
+                double y = (i - screenHeight / 2) * screen / screenHeight;
+
                 Ray3D ray = new Ray3D(eye, new Point3D(x, y, screen));
 
-                //Find the closest object the ray intersects with
-                RayHit hit = closestRayHit(objects, ray);
-
-                //find the intersection point
-                Point3D p = ray.atTime(hit.distance);
+                g.setColor(getPointColor(ray).getColor());
                 
-                Color pointColor = new Color(0,0,0);
-                int totalRGB = 0;
+                g.drawLine(i, j, i + 1, j + 1);
 
-                //Find light and eye vector for each light
-                for (int k = 0; k < lights.size(); k++) {
-                    Light light = lights.get(k);
-
-                    Point3D lightVector = light.position.subtract(p);
-                    Point3D eyeVector = eye.subtract(p);
-
-                    //Ray3D LR = new Ray3D(p, lightVector);
-
-                    //RayHit lightHit = closestRayHit(objects, LR);
-
-                    //if (lightHit.distance < lightVector.length() - Object3D.epsilon) {
-                        //continue;
-                    //}
-
-                    
-
-                    //Draw object color based on where ray hits it
-                    if (hit.distance != Double.POSITIVE_INFINITY) {
-
-                        double diffuseIntensity = light.diffuse(lightVector, hit.normal);
-                        //double specularIntensity = light.specular(lightVector, eyeVector, hit.normal, 1);
-
-                        int rgb = new Double(diffuseIntensity).intValue(); //+ specularIntensity).intValue();
-                        totalRGB += rgb;
-                        
-                        //System.out.println("totalRGB: " + totalRGB); //+ " , " + specularIntensity + " = " + rgb);
-                    }
-                    if(totalRGB > 255) totalRGB = 255;
-                    pointColor = new Color(totalRGB, totalRGB, totalRGB);
-                    g.setColor(pointColor);
-                    
-                    if (hit.distance != Double.POSITIVE_INFINITY) {
-                        //System.out.println("i = " + i + " , j= " + j);
-                        g.drawLine(i, j, i+1, j+1);
-                    }
-                }
+                /*
+                 * if (hit.distance != Double.POSITIVE_INFINITY) {
+                 * //System.out.println("i = " + i + " , j= " + j);
+                 * g.drawLine(i, j, i+1, j+1); }
+                 */
+            }
 
             }
-        }
+        //}
 
 
 
@@ -120,5 +88,57 @@ public class RayTracer extends JComponent {
         }
 
         return closestHit;
+    }
+
+    public RTColor getPointColor(Ray3D ray) {
+
+        //Find the closest object the ray intersects with
+        RayHit hit = closestRayHit(objects, ray);
+        
+        RTColor pointColor = new RTColor(Color.WHITE);
+        int totalRGB = 0;
+        
+        if (hit.distance != Double.POSITIVE_INFINITY) {
+
+            //find the intersection point
+            Point3D p = ray.atTime(hit.distance);
+
+            //Find light and eye vector for each light
+            for (int k = 0; k < lights.size(); k++) {
+                Light light = lights.get(k);
+
+                Point3D lightVector = light.position.subtract(p);
+                Point3D eyeVector = eye.subtract(p);
+
+                /*
+                Ray3D LR = new Ray3D(p, lightVector);
+                 
+                RayHit lightHit = closestRayHit(objects, LR);
+                 
+                if (lightHit.distance < lightVector.length() - Object3D.epsilon) { 
+                   continue; 
+                }
+                */
+
+                //Draw object color based on where ray hits it
+                double diffuseIntensity = light.diffuse(lightVector, hit.normal);
+                //double specularIntensity = light.specular(lightVector, eyeVector, hit.normal, 1);
+
+                int rgb = new Double(diffuseIntensity).intValue(); //+ specularIntensity).intValue();
+                totalRGB += rgb;
+
+                //System.out.println("totalRGB: " + totalRGB); //+ " , " + specularIntensity + " = " + rgb);
+
+                if (totalRGB > 255) {
+                    totalRGB = 255;
+                }
+                
+                pointColor = new RTColor(totalRGB, totalRGB, totalRGB);
+            }
+            
+        }
+        
+        return pointColor;
+
     }
 }
