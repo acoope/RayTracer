@@ -37,9 +37,9 @@ public class RayTracer extends JComponent {
         eye = new Point3D(0d, 0d, 0d);
 
         //Add light(s)
-        lights.add(new Light(new Point3D(0, 20, 80)));
-        lights.add(new Light(new Point3D(-50, -50, 50)));
-        lights.add(new Light(new Point3D(40, 30, 2)));
+        lights.add(new Light(new Point3D(0, 20, 20), new RTColor(100,100,100)));
+        lights.add(new Light(new Point3D(-50, -50, 50), new RTColor(255,0,0)));
+        lights.add(new Light(new Point3D(40, 30, 2), new RTColor(0,255,0)));
    
         //Add object(s)
         objects.add(new Sphere3D(new Point3D(10, 5, 100), 30));
@@ -68,17 +68,9 @@ public class RayTracer extends JComponent {
                     g.drawLine(i, j, i + 1, j + 1);
                 }
 
-                /*
-                 * if (hit.distance != Double.POSITIVE_INFINITY) {
-                 * //System.out.println("i = " + i + " , j= " + j);
-                 * g.drawLine(i, j, i+1, j+1); }
-                 */
             }
 
-            }
-        //}
-
-
+        }
 
     }
 
@@ -106,7 +98,10 @@ public class RayTracer extends JComponent {
             Point3D p = ray.atTime(hit.distance);
             
             RTColor pointColor = new RTColor(Color.WHITE);
-            int totalRGB = 0;
+            
+            int totalRed = 0;
+            int totalGreen = 0;
+            int totalBlue = 0;
 
             //Find light and eye vector for each light
             for (int k = 0; k < lights.size(); k++) {
@@ -128,17 +123,18 @@ public class RayTracer extends JComponent {
                 //Draw object color based on where ray hits it
                 double diffuseIntensity = light.diffuse(lightVector, hit.normal);
                 //double specularIntensity = light.specular(lightVector, eyeVector, hit.normal, 1);
-
-                int rgb = new Double(diffuseIntensity).intValue(); //+ specularIntensity).intValue();
-                totalRGB += rgb;
-
-                //System.out.println("totalRGB: " + totalRGB); //+ " , " + specularIntensity + " = " + rgb);
-
-                if (totalRGB > 255) {
-                    totalRGB = 255;
-                }
                 
-                pointColor = new RTColor(totalRGB, totalRGB, totalRGB);
+                double intensity = diffuseIntensity; //+ specularIntensity;
+               
+                totalRed += light.color.getRed() * intensity;
+                totalGreen += light.color.getGreen() * intensity;
+                totalBlue += light.color.getBlue() * intensity;
+
+                if(totalRed > 255) totalRed = 255;
+                if(totalGreen > 255) totalGreen = 255;
+                if(totalBlue > 255) totalBlue = 255;
+                
+                pointColor = new RTColor(totalRed, totalGreen, totalBlue);
             }
             
             return pointColor;
