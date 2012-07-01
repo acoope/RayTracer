@@ -58,10 +58,15 @@ public class RayTracer extends JComponent {
                 double y = (i - screenHeight / 2) * screen / screenHeight;
 
                 Ray3D ray = new Ray3D(eye, new Point3D(x, y, screen));
-
-                g.setColor(getPointColor(ray).getColor());
                 
-                g.drawLine(i, j, i + 1, j + 1);
+                RTColor pColor = getPointColor(ray);
+                
+                if(pColor.draw){
+
+                    g.setColor(pColor.getColor());
+                
+                    g.drawLine(i, j, i + 1, j + 1);
+                }
 
                 /*
                  * if (hit.distance != Double.POSITIVE_INFINITY) {
@@ -94,14 +99,14 @@ public class RayTracer extends JComponent {
 
         //Find the closest object the ray intersects with
         RayHit hit = closestRayHit(objects, ray);
-        
-        RTColor pointColor = new RTColor(Color.WHITE);
-        int totalRGB = 0;
-        
+
         if (hit.distance != Double.POSITIVE_INFINITY) {
 
             //find the intersection point
             Point3D p = ray.atTime(hit.distance);
+            
+            RTColor pointColor = new RTColor(Color.WHITE);
+            int totalRGB = 0;
 
             //Find light and eye vector for each light
             for (int k = 0; k < lights.size(); k++) {
@@ -136,9 +141,11 @@ public class RayTracer extends JComponent {
                 pointColor = new RTColor(totalRGB, totalRGB, totalRGB);
             }
             
-        }
+            return pointColor;
+        } else {
         
-        return pointColor;
+            return new RTColor(Color.WHITE,false);
+        }
 
     }
 }
