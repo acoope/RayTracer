@@ -20,11 +20,10 @@ public class Light {
 
         Point3D u = lightVector.normalize();
         Point3D e = eyeVector.normalize(); 
-        Point3D w = u.add(e); 
+        Point3D w = u.add(e).normalize(); 
         
         double specularIntensity = Math.pow(w.dot(normal), hardness);
         
         if (u.dot(normal) < 0) return 0; else return specularIntensity;
-        
     }
 }

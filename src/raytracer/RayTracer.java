@@ -37,10 +37,11 @@ public class RayTracer extends JComponent {
         eye = new Point3D(0d, 0d, 0d);
 
         //Add light(s)
-        lights.add(new Light(new Point3D(0, 20, 20), new RTColor(100,100,100)));
+        //lights.add(new Light(new Point3D(0, 20, 20), new RTColor(100,100,100)));
+        lights.add(new Light(new Point3D(0, 20, 20), new RTColor(0,0,255)));
         lights.add(new Light(new Point3D(-50, -50, 50), new RTColor(255,0,0)));
         lights.add(new Light(new Point3D(40, 30, 2), new RTColor(0,255,0)));
-   
+        
         //Add object(s)
         objects.add(new Sphere3D(new Point3D(10, 5, 100), 30));
         objects.add(new Sphere3D(new Point3D(-20, -10, 100), 20));
@@ -122,9 +123,9 @@ public class RayTracer extends JComponent {
 
                 //Draw object color based on where ray hits it
                 double diffuseIntensity = light.diffuse(lightVector, hit.normal);
-                //double specularIntensity = light.specular(lightVector, eyeVector, hit.normal, 1);
+                double specularIntensity = light.specular(lightVector, eyeVector, hit.normal, 100);
                 
-                double intensity = diffuseIntensity; //+ specularIntensity;
+                double intensity = diffuseIntensity + specularIntensity;
                
                 totalRed += light.color.getRed() * intensity;
                 totalGreen += light.color.getGreen() * intensity;
