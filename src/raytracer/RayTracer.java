@@ -40,12 +40,13 @@ public class RayTracer extends JComponent {
         //lights.add(new Light(new Point3D(0, 20, 20), new RTColor(100,100,100)));
         lights.add(new Light(new Point3D(0, 20, 20), new RTColor(0,0,255)));
         lights.add(new Light(new Point3D(-50, -50, 50), new RTColor(255,0,0)));
-        lights.add(new Light(new Point3D(40, 30, 2), new RTColor(0,255,0)));
+        lights.add(new Light(new Point3D(-40, 30, 2), new RTColor(0,255,0)));
         
         //Add object(s)
         objects.add(new Sphere3D(new Point3D(10, 5, 100), 30));
         objects.add(new Sphere3D(new Point3D(-20, -10, 100), 20));
-
+        objects.add(new Sphere3D(new Point3D(-30, 16, 70), 7));
+        
         //Create rays going from eye(camera) through screen(depth)
         double screen = 5;
         int screenWidth = this.getWidth();
@@ -60,7 +61,7 @@ public class RayTracer extends JComponent {
 
                 Ray3D ray = new Ray3D(eye, new Point3D(x, y, screen));
                 
-                RTColor pColor = getPointColor(ray);
+                RTColor pColor = getPointColor(ray, 3);
                 
                 if(pColor.draw){
 
@@ -88,13 +89,15 @@ public class RayTracer extends JComponent {
         return closestHit;
     }
 
-    public RTColor getPointColor(Ray3D ray) {
-
+    public RTColor getPointColor(Ray3D ray, int depth) {
+        if(depth < 0 ){
+            return new RTColor(0,0,0);
+        }
+        
         //Find the closest object the ray intersects with
         RayHit hit = closestRayHit(objects, ray);
 
-        if (hit.distance != Double.POSITIVE_INFINITY) {
-
+        if (hit.distance != Double.POSITIVE_INFINITY) { 
             //find the intersection point
             Point3D p = ray.atTime(hit.distance);
             
@@ -138,11 +141,31 @@ public class RayTracer extends JComponent {
                 pointColor = new RTColor(totalRed, totalGreen, totalBlue);
             }
             
+            //Calculate reflection ray
+            Ray3D reflectionRay = reflection(ray,hit.normal);
+            
+            RTColor reflectColor = getPointColor(reflectionRay, depth-1);
+            //System.out.println("obj color= " + pointColor.getRed() + " , reflect color= " + reflectColor.getRed());
+            
+            pointColor = pointColor.addColor(reflectColor);
+            
             return pointColor;
         } else {
         
-            return new RTColor(Color.WHITE,false);
+            return new RTColor(new Color(0,0,0),false);
         }
 
+    }
+    
+    public Ray3D reflection(Ray3D r, Point3D normal ){
+        Point3D rayDist = r.d;
+        double dn = rayDist.dot(normal);
+        Point3D Dprojection = normal.scale(dn).scale(2);
+        
+        Point3D reflectionDist = rayDist.subtract(Dprojection);
+        
+        Ray3D reflectRay = new Ray3D(r.p,reflectionDist);
+        
+        return reflectRay;     
     }
 }

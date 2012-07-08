@@ -19,7 +19,7 @@ public class RTColor {
     
     public RTColor(Color c, boolean draw){
         this.color = c;
-        this.draw = false;
+        this.draw = draw;
     }
     
     
@@ -28,7 +28,7 @@ public class RTColor {
         return this.color;
     }
     
-    public Color addColor(Color c){
+    public RTColor addColor(RTColor c){
         int red = color.getRed() + c.getRed();
         int green = color.getGreen() + c.getGreen();
         int blue = color.getBlue() + c.getBlue();
@@ -37,7 +37,7 @@ public class RTColor {
         if(green > 255) green = 255;
         if(blue > 255) blue = 255;
         
-        return new Color(red,green,blue);
+        return new RTColor(red,green,blue);
     }
     
     public Color multiplyColors(Color c){
