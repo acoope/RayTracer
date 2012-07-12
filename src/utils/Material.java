@@ -4,11 +4,15 @@ package utils;
 import java.awt.Color;
 
 public class Material {
-    public static Material defaultMat = new Material(); 
     double hardness = 70d; 
-    Color color = Color.WHITE;
+    RTColor color = new RTColor(Color.WHITE);
     
-    public Color getColor(){
+    
+    public Material(RTColor c){
+         this.color = c;
+    }
+    
+    public RTColor getColor(){
         return this.color;
     }
 }

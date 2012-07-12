@@ -52,7 +52,7 @@ public class RTColor {
         return new Color(red,green,blue);
     }
     
-    public Color scaleColor(double intensity){
+    public RTColor scaleColor(double intensity){
         int red = new Double(color.getRed() * intensity).intValue();
         int green = new Double(color.getGreen() * intensity).intValue();
         int blue = new Double(color.getBlue() * intensity).intValue();
@@ -61,7 +61,7 @@ public class RTColor {
         if(green > 255) green = 255;
         if(blue > 255) blue = 255;
         
-        return new Color(red,green,blue);
+        return new RTColor(red,green,blue);
         
     }
     

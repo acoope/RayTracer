@@ -38,14 +38,16 @@ public class RayTracer extends JComponent {
 
         //Add light(s)
         //lights.add(new Light(new Point3D(0, 20, 20), new RTColor(100,100,100)));
-        lights.add(new Light(new Point3D(0, 20, 20), new RTColor(0,0,255)));
-        lights.add(new Light(new Point3D(-50, -50, 50), new RTColor(255,0,0)));
-        lights.add(new Light(new Point3D(-40, 30, 2), new RTColor(0,255,0)));
+        //lights.add(new Light(new Point3D(-20, 20, 0), new RTColor(0,0,255)));
+        lights.add(new Light(new Point3D(-5, 50, 70), new RTColor(0,255,0)));
+        lights.add(new Light(new Point3D(-15, 20, 70), new RTColor(0,0,255)));
+        //lights.add(new Light(new Point3D(-40, 30, 2), new RTColor(0,255,0)));
         
         //Add object(s)
-        objects.add(new Sphere3D(new Point3D(10, 5, 100), 30));
-        objects.add(new Sphere3D(new Point3D(-20, -10, 100), 20));
-        objects.add(new Sphere3D(new Point3D(-30, 16, 70), 7));
+        //objects.add(new Sphere3D(new Point3D(10, 5, 100), 30));
+        //objects.add(new Sphere3D(new Point3D(-20, 10, 100), 20));
+        objects.add(new Sphere3D(new Point3D(-5, 16, 70), 7, new Material(new RTColor(255,0,0)),0));
+        objects.add(new Plane3D(new Point3D(0,-10,0), new Point3D(0,1,0),new Material(new RTColor(0,255,0)),0));
         
         //Create rays going from eye(camera) through screen(depth)
         double screen = 5;
@@ -56,8 +58,8 @@ public class RayTracer extends JComponent {
         for (int i = 0; i < screenHeight; i++) {
             for (int j = 0; j < screenWidth; j++) {
               
-                double x = (j - screenWidth / 2) * screen / screenWidth;
-                double y = (i - screenHeight / 2) * screen / screenHeight;
+                double x = (i - screenWidth / 2) * screen / screenWidth;
+                double y = ((screenHeight / 2) - j) * screen / screenHeight;
 
                 Ray3D ray = new Ray3D(eye, new Point3D(x, y, screen));
                 
@@ -81,6 +83,7 @@ public class RayTracer extends JComponent {
 
         for (int i = 0; i < objects.size(); i++) {
             RayHit currentRayHit = objects.get(i).rayIntersect(ray);
+            //System.out.println("i=" + i + " ,currentRayHit= " + currentRayHit.distance);
             if (currentRayHit.distance < closestHit.distance) {
                 closestHit = currentRayHit;
             }
@@ -96,12 +99,12 @@ public class RayTracer extends JComponent {
         
         //Find the closest object the ray intersects with
         RayHit hit = closestRayHit(objects, ray);
-
+ 
         if (hit.distance != Double.POSITIVE_INFINITY) { 
             //find the intersection point
             Point3D p = ray.atTime(hit.distance);
             
-            RTColor pointColor = new RTColor(Color.WHITE);
+            RTColor pointColor = new RTColor(Color.BLACK);
             
             int totalRed = 0;
             int totalGreen = 0;
@@ -114,7 +117,7 @@ public class RayTracer extends JComponent {
                 Point3D lightVector = light.position.subtract(p);
                 Point3D eyeVector = eye.subtract(p);
 
-                /*
+                //Figure out if there is a shadow
                 Ray3D LR = new Ray3D(p, lightVector);
                  
                 RayHit lightHit = closestRayHit(objects, LR);
@@ -122,7 +125,7 @@ public class RayTracer extends JComponent {
                 if (lightHit.distance < lightVector.length() - Object3D.epsilon) { 
                    continue; 
                 }
-                */
+                
 
                 //Draw object color based on where ray hits it
                 double diffuseIntensity = light.diffuse(lightVector, hit.normal);
@@ -130,14 +133,14 @@ public class RayTracer extends JComponent {
                 
                 double intensity = diffuseIntensity + specularIntensity;
                
-                totalRed += light.color.getRed() * intensity;
-                totalGreen += light.color.getGreen() * intensity;
-                totalBlue += light.color.getBlue() * intensity;
+                totalRed += hit.obj.mat.getColor().getRed() * light.color.getRed() * intensity;
+                totalGreen += hit.obj.mat.getColor().getGreen() * light.color.getGreen() * intensity;
+                totalBlue += hit.obj.mat.getColor().getBlue() * light.color.getBlue() * intensity;
 
                 if(totalRed > 255) totalRed = 255;
                 if(totalGreen > 255) totalGreen = 255;
                 if(totalBlue > 255) totalBlue = 255;
-                
+                       
                 pointColor = new RTColor(totalRed, totalGreen, totalBlue);
             }
             
@@ -147,7 +150,7 @@ public class RayTracer extends JComponent {
             RTColor reflectColor = getPointColor(reflectionRay, depth-1);
             //System.out.println("obj color= " + pointColor.getRed() + " , reflect color= " + reflectColor.getRed());
             
-            pointColor = pointColor.addColor(reflectColor);
+            pointColor = (pointColor.scaleColor(1-hit.obj.reflectiveCoeff)).addColor(reflectColor.scaleColor(hit.obj.reflectiveCoeff));
             
             return pointColor;
         } else {

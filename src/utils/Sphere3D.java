@@ -11,6 +11,15 @@ public class Sphere3D extends Object3D {
         this.center = c;
         this.radius = r;
     }
+    
+    public Sphere3D(Point3D c, double r, Material m, double coeff){
+        super();
+        this.center = c;
+        this.radius = r;
+        this.reflectiveCoeff = coeff;
+        this.mat = m;
+    }
+    
 
     @Override
     public RayHit rayIntersect(Ray3D ray) {
