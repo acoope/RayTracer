@@ -1,7 +1,13 @@
 package raytracer;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import utils.*;
 
@@ -10,6 +16,9 @@ public class RayTracer extends JComponent {
     public Point3D eye;
     public ArrayList<Light> lights;
     public ArrayList<Object3D> objects;
+    public int[][] pixelRGB = null;
+    public int[][] grassRGB = null;
+    public BufferedImage img;
     
     /**
      * @param args the command line arguments
@@ -20,13 +29,14 @@ public class RayTracer extends JComponent {
         mainFrame.getContentPane().add(new RayTracer());
         mainFrame.setSize(399, 399);
         mainFrame.setVisible(true);
-
     }
 
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-
+        
+        loadImage("/Users/alissa/NetBeansProjects/RayTracer/src/raytracer/resources/images.jpg");
+        
         lights = new ArrayList<Light>();
         objects = new ArrayList<Object3D>();
 
@@ -39,15 +49,15 @@ public class RayTracer extends JComponent {
         //Add light(s)
         //lights.add(new Light(new Point3D(0, 20, 20), new RTColor(100,100,100)));
         //lights.add(new Light(new Point3D(-20, 20, 0), new RTColor(0,0,255)));
-        lights.add(new Light(new Point3D(-5, 50, 70), new RTColor(0,255,0)));
-        lights.add(new Light(new Point3D(-15, 20, 70), new RTColor(0,0,255)));
+        lights.add(new Light(new Point3D(20, 50, 70), new RTColor(0,255,0)));
+        lights.add(new Light(new Point3D(-25, 20, 70), new RTColor(255,0,0)));
         //lights.add(new Light(new Point3D(-40, 30, 2), new RTColor(0,255,0)));
         
         //Add object(s)
         //objects.add(new Sphere3D(new Point3D(10, 5, 100), 30));
         //objects.add(new Sphere3D(new Point3D(-20, 10, 100), 20));
-        objects.add(new Sphere3D(new Point3D(-5, 16, 70), 7, new Material(new RTColor(255,0,0)),0));
-        objects.add(new Plane3D(new Point3D(0,-10,0), new Point3D(0,1,0),new Material(new RTColor(0,255,0)),0));
+        objects.add(new Sphere3D(new Point3D(-5, 16, 70), 7, new Material(new RTColor(0,255,255)),0.5));
+        objects.add(new Plane3D(new Point3D(0,-10,0), new Point3D(0,1,0),new Material(new RTColor(0,255,255)),0));
         
         //Create rays going from eye(camera) through screen(depth)
         double screen = 5;
@@ -152,6 +162,10 @@ public class RayTracer extends JComponent {
             
             pointColor = (pointColor.scaleColor(1-hit.obj.reflectiveCoeff)).addColor(reflectColor.scaleColor(hit.obj.reflectiveCoeff));
             
+            if(hit.obj.getClass().equals(Plane3D.class)){
+                pointColor = textureMapping(p,.1);
+            }
+            
             return pointColor;
         } else {
         
@@ -170,5 +184,57 @@ public class RayTracer extends JComponent {
         Ray3D reflectRay = new Ray3D(r.p,reflectionDist);
         
         return reflectRay;     
+    }
+    
+    public void loadImage(String fileName) {
+        try {
+            File file = new File(fileName);
+            img = ImageIO.read(file);  
+            pixelRGB = new int[img.getWidth()][img.getHeight()];  
+                    
+            for (int i = 0; i < img.getWidth(); i++) {
+                for (int j = 0; j < img.getHeight(); j++) {
+                    pixelRGB[i][j] = img.getRGB(i, j);
+                }
+            }
+        } catch (IOException ex) {
+            System.out.println("Couldn't read image into RGB at each pixel");
+        }
+
+    }
+    
+    public RTColor textureMapping(Point3D point, double pixelSize){
+        
+        //calculate i
+        int tempi = new Double(point.x / pixelSize).intValue();
+        int width = img.getWidth();
+        
+        while (tempi < 0){
+            tempi = tempi + width;
+        }
+        
+        int i = tempi % width;
+        
+                
+        //calculate j
+        int tempj = new Double(point.z / pixelSize).intValue();
+        int height = img.getHeight();
+        while (tempj < 0){
+            tempj = tempj + height;
+        }
+        
+        int j = tempj % height;
+        
+        //look up RGB value in array
+        int rgb = pixelRGB[i][j];
+        
+        //find each of red, green, and blue values
+        int red = (rgb >> 16) & 0xff;
+        int green = (rgb >> 8) & 0xff;
+        int blue = (rgb) & 0xff;
+                
+        //return pixel color
+        return new RTColor(red,green,blue);
+        
     }
 }
